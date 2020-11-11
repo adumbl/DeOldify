@@ -32,19 +32,63 @@ torch.backends.cudnn.benchmark=True
 app = Flask(__name__)
 
 
+@app.route("/canva/editing/image/process", methods=["POST"])
+def process_image_for_canva():
+    input_path = generate_random_filename(upload_directory,"jpeg")  # /data/upload/0232323.jpeg'
+    output_path = os.path.join(results_img_directory, os.path.basename(input_path)) # /data/results_images/0232323.jpeg
+
+    print("Input path:", input_path)
+    print("Output path:", output_path)
+
+    try:
+        # passing a imageUrl in a body payload
+        url = request.json["imageUrl"]
+        print("imageUrl", url)
+        # render_factor = 35 #int(request.json["render_factor"])
+
+        download(url, input_path)
+        print("downloaded")
+
+        run(input_path)
+        print("converted")
+        
+        callback = send_file(output_path, mimetype='image/jpeg')
+    
+        return callback, 200
+
+    except DownloadPrecheckFailed as e:
+        return jsonify({'message': str(e)}), 400
+    except:
+        traceback.print_exc()
+        return jsonify({'message': 'inference error'}), 500
+
+    finally:
+        pass
+        clean_all([
+            input_path,
+            output_path
+            ])
+
 # define a predict function as an endpoint
 @app.route("/process-img", methods=["POST"])
 def process_image():
     input_path = generate_random_filename(upload_directory,"jpeg")
     output_path = os.path.join(results_img_directory, os.path.basename(input_path))
 
+    print("Input path:", input_path)
+    print("Output path:", output_path)
+
     try:
+        # passing a source_url as a payload
         url = request.json["source_url"]
+        print("source_url", url)
         # render_factor = 35 #int(request.json["render_factor"])
 
         download(url, input_path)
+        print("downloaded")
 
         run(input_path)
+        print("converted")
 
         callback = send_file(output_path, mimetype='image/jpeg')
     
@@ -68,6 +112,7 @@ def processToForm():
     input_path = generate_random_filename(upload_directory,"jpeg")
     output_path = os.path.join(results_img_directory, os.path.basename(input_path))
 
+    # passed through form
     image = request.files['image']
 
     image.save(input_path)
@@ -80,6 +125,7 @@ def processToForm():
 
 
 def run(input_path):
+    # set to default 35
     render_factor = 35
 
     try:
