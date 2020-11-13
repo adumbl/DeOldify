@@ -43,13 +43,14 @@ def process_image_for_canva():
     try:
         # passing a imageUrl in a body payload
         url = request.json["imageUrl"]
+        render_factor = int(request.json["render_factor"]
         print("imageUrl", url)
         # render_factor = 35 #int(request.json["render_factor"])
 
         download(url, input_path)
         print("downloaded")
 
-        run(input_path)
+        run(input_path, render_factor)
         print("converted")
         
         callback = send_file(output_path, mimetype='image/jpeg')
@@ -81,13 +82,13 @@ def process_image():
     try:
         # passing a source_url as a payload
         url = request.json["source_url"]
+        render_factor = int(request.json["render_factor"]
         print("source_url", url)
-        # render_factor = 35 #int(request.json["render_factor"])
 
         download(url, input_path)
         print("downloaded")
 
-        run(input_path)
+        run(input_path, render_factor)
         print("converted")
 
         callback = send_file(output_path, mimetype='image/jpeg')
@@ -124,10 +125,7 @@ def processToForm():
     return callback, 200
 
 
-def run(input_path):
-    # set to default 35
-    render_factor = 35
-
+def run(input_path, render_factor = 35):
     try:
         image_colorizer.plot_transformed_image(path=input_path, figsize=(20,20),
         render_factor=render_factor, display_render_factor=True, compare=False)
